@@ -2,7 +2,11 @@ require 'ffi'
 
 module Gumbo 
         extend FFI::Library
-        ffi_lib "/usr/local/lib/libgumbo.so"
+        if FFI::Platform.mac?
+          ffi_lib "/usr/local/lib/libgumbo.dylib"
+        else
+          ffi_lib "/usr/local/lib/libgumbo.so"
+        end
 
         class StringPiece < FFI::Struct
                 layout :data,   :string,
@@ -28,27 +32,60 @@ module Gumbo
                        :value_start, SourcePosition,
                        :value_end, SourcePosition
 
+                def name
+                  self[:name]
+                end
+
+                def value
+                  self[:value]
+                end
         end
 
         class Vector < FFI::Struct
                 layout :data, :pointer,
                        :length, :uint,
                        :capacity, :uint
+
+                alias_method :get, :[]
+
+                include Enumerable
+
+                def [](idx)
+                  if idx < self.get(:length)
+                    self.get(:data).get_pointer(idx)
+                  end
+                end
+
+                def each
+                  (0...length).each{|idx| yield self.get(:data).get_pointer(idx)}
+                end
+
+                def <=>(a, b)
+                  0
+                end
+
+                def length
+                  self.get(:length)
+                end
         end
 
-        class AttributeVector < Vector; end
+        AttributeVector = Vector
 
-        class NodeVector < Vector; end
+        NodeVector = Vector
 
         enum :quirks_mode, [:no_quirks, :quirks, :limited_quirks]
 
         class Document < FFI::Struct
+                include Enumerable
                 layout :children, NodeVector,
                        :has_doctype, :bool,
                        :name, :pointer,
                        :public_identifier, :string,
                        :system_identifier, :string,
                        :doc_type_quirks_mode, :quirks_mode
+
+                def each
+                end
 
                 def to_s
                         "Document"
@@ -215,6 +252,14 @@ module Gumbo
                        :start_pos, SourcePosition,
                        :end_pos, SourcePosition,
                        :attributes, AttributeVector
+
+                def attributes
+                  self[:attributes]
+                end
+
+                def attribute(name)
+                  self.attributes.find{|x| x.name == name}.value
+                end
         end
 
         class Text < FFI::Struct
@@ -238,6 +283,13 @@ module Gumbo
                        :parse_flags, :pointer,
                        :v, NodeUnion
 
+                def type
+                  self[:type]
+                end
+
+                def value
+                  self[:v][self.type]
+                end
         end
 
         class Options < FFI::Struct
@@ -251,7 +303,7 @@ module Gumbo
         end
 
         class Output < FFI::Struct
-                layout :document, Document.ptr,
+                layout :document, Node.ptr,
                        :root, Node.ptr,
                        :errors, Vector
         end
@@ -263,8 +315,13 @@ module Gumbo
 end
 
 if __FILE__ == $0
-        text = IO.read(File.expand_path("../../../docs/html/index.html", __FILE__))
+        text = IO.read(File.expand_path("../../../../c/gumbo-parser/docs/html/index.html", __FILE__))
         ptr = Gumbo.parse(text)
-        puts ptr[:document][:name].read_string()
-        puts ptr[:document][:children][:length]
+        puts ptr[:document][:index_within_parent]
+        puts ptr[:document][:v][:document][:name].read_string
+        ptr[:document][:v][:document][:children].each do |pointr|
+          node = Gumbo::Node.new(pointr)
+          puts Gumbo::Attribute.new(node.value.attributes[0]).value
+          puts Gumbo::Attribute.new(node.value.attributes[0]).value
+        end
 end
