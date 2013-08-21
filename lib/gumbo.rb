@@ -1,4 +1,4 @@
-require 'ffi'
+require "ffi"
 
 module Gumbo 
         extend FFI::Library
@@ -32,6 +32,10 @@ module Gumbo
                        :value_start, SourcePosition,
                        :value_end, SourcePosition
 
+                def namespace
+                        self[:namespace]
+                end
+
                 def name
                   self[:name]
                 end
@@ -46,18 +50,20 @@ module Gumbo
                        :length, :uint,
                        :capacity, :uint
 
-                alias_method :get, :[]
+                @@type = FFI::Pointer
 
                 include Enumerable
 
+                alias_method :get, :[]
+
                 def [](idx)
                   if idx < self.get(:length)
-                    self.get(:data).get_pointer(idx)
+                    @@type.new(self.get(:data).get_pointer(idx))
                   end
                 end
 
                 def each
-                  (0...length).each{|idx| yield self.get(:data).get_pointer(idx)}
+                  (0...length).each{|idx| yield @@type.new(self.get(:data).get_pointer(idx))}
                 end
 
                 def <=>(a, b)
@@ -67,24 +73,38 @@ module Gumbo
                 def length
                   self.get(:length)
                 end
+
+                alias_method :size, :length
+
+                def self.type=(t)
+                        @@type = t
+                end
         end
 
-        AttributeVector = Vector
+        class NodeVector < Vector
+        end
 
-        NodeVector = Vector
+        class AttributeVector < Vector
+                @@type = Attribute
+        end
+
 
         enum :quirks_mode, [:no_quirks, :quirks, :limited_quirks]
 
         class Document < FFI::Struct
-                include Enumerable
                 layout :children, NodeVector,
                        :has_doctype, :bool,
-                       :name, :pointer,
+                       :name, :string,
                        :public_identifier, :string,
                        :system_identifier, :string,
                        :doc_type_quirks_mode, :quirks_mode
 
-                def each
+                def name
+                        self[:name]
+                end
+
+                def children
+                        self[:children]
                 end
 
                 def to_s
@@ -94,153 +114,153 @@ module Gumbo
 
         enum :namespace, [:html, :svg, :mahtml]
 
-        enum :tag,  ['HTML',
-                     'HEAD',
-                     'TITLE',
-                     'BASE',
-                     'LINK',
-                     'META',
-                     'STYLE',
-                     'SCRIPT',
-                     'NOSCRIPT',
-                     'BODY',
-                     'SECTION',
-                     'NAV',
-                     'ARTICLE',
-                     'ASIDE',
-                     'H1',
-                     'H2',
-                     'H3',
-                     'H4',
-                     'H5',
-                     'H6',
-                     'HGROUP',
-                     'HEADER',
-                     'FOOTER',
-                     'ADDRESS',
-                     'P',
-                     'HR',
-                     'PRE',
-                     'BLOCKQUOTE',
-                     'OL',
-                     'UL',
-                     'LI',
-                     'DL',
-                     'DT',
-                     'DD',
-                     'FIGURE',
-                     'FIGCAPTION',
-                     'DIV',
-                     'A',
-                     'EM',
-                     'STRONG',
-                     'SMALL',
-                     'S',
-                     'CITE',
-                     'Q',
-                     'DFN',
-                     'ABBR',
-                     'TIME',
-                     'CODE',
-                     'VAR',
-                     'SAMP',
-                     'KBD',
-                     'SUB',
-                     'SUP',
-                     'I',
-                     'B',
-                     'MARK',
-                     'RUBY',
-                     'RT',
-                     'RP',
-                     'BDI',
-                     'BDO',
-                     'SPAN',
-                     'BR',
-                     'WBR',
-                     'INS',
-                     'DEL',
-                     'IMAGE',
-                     'IMG',
-                     'IFRAME',
-                     'EMBED',
-                     'OBJECT',
-                     'PARAM',
-                     'VIDEO',
-                     'AUDIO',
-                     'SOURCE',
-                     'TRACK',
-                     'CANVAS',
-                     'MAP',
-                     'AREA',
-                     'MATH',
-                     'MI',
-                     'MO',
-                     'MN',
-                     'MS',
-                     'MTEXT',
-                     'MGLYPH',
-                     'MALIGNMARK',
-                     'ANNOTATION_XML',
-                     'SVG',
-                     'FOREIGNOBJECT',
-                     'DESC',
-                     'TABLE',
-                     'CAPTION',
-                     'COLGROUP',
-                     'COL',
-                     'TBODY',
-                     'THEAD',
-                     'TFOOT',
-                     'TR',
-                     'TD',
-                     'TH',
-                     'FORM',
-                     'FIELDSET',
-                     'LEGEND',
-                     'LABEL',
-                     'INPUT',
-                     'BUTTON',
-                     'SELECT',
-                     'DATALIST',
-                     'OPTGROUP',
-                     'OPTION',
-                     'TEXTAREA',
-                     'KEYGEN',
-                     'OUTPUT',
-                     'PROGRESS',
-                     'METER',
-                     'DETAILS',
-                     'SUMMARY',
-                     'COMMAND',
-                     'MENU',
-                     'APPLET',
-                     'ACRONYM',
-                     'BGSOUND',
-                     'DIR',
-                     'FRAME',
-                     'FRAMESET',
-                     'NOFRAMES',
-                     'ISINDEX',
-                     'LISTING',
-                     'XMP',
-                     'NEXTID',
-                     'NOEMBED',
-                     'PLAINTEXT',
-                     'RB',
-                     'STRIKE',
-                     'BASEFONT',
-                     'BIG',
-                     'BLINK',
-                     'CENTER',
-                     'FONT',
-                     'MARQUEE',
-                     'MULTICOL',
-                     'NOBR',
-                     'SPACER',
-                     'TT',
-                     'U',
-                     'UNKNOWN',
+        enum :tag,  [:HTML,
+                     :HEAD,
+                     :TITLE,
+                     :BASE,
+                     :LINK,
+                     :META,
+                     :STYLE,
+                     :SCRIPT,
+                     :NOSCRIPT,
+                     :BODY,
+                     :SECTION,
+                     :NAV,
+                     :ARTICLE,
+                     :ASIDE,
+                     :H1,
+                     :H2,
+                     :H3,
+                     :H4,
+                     :H5,
+                     :H6,
+                     :HGROUP,
+                     :HEADER,
+                     :FOOTER,
+                     :ADDRESS,
+                     :P,
+                     :HR,
+                     :PRE,
+                     :BLOCKQUOTE,
+                     :OL,
+                     :UL,
+                     :LI,
+                     :DL,
+                     :DT,
+                     :DD,
+                     :FIGURE,
+                     :FIGCAPTION,
+                     :DIV,
+                     :A,
+                     :EM,
+                     :STRONG,
+                     :SMALL,
+                     :S,
+                     :CITE,
+                     :Q,
+                     :DFN,
+                     :ABBR,
+                     :TIME,
+                     :CODE,
+                     :VAR,
+                     :SAMP,
+                     :KBD,
+                     :SUB,
+                     :SUP,
+                     :I,
+                     :B,
+                     :MARK,
+                     :RUBY,
+                     :RT,
+                     :RP,
+                     :BDI,
+                     :BDO,
+                     :SPAN,
+                     :BR,
+                     :WBR,
+                     :INS,
+                     :DEL,
+                     :IMAGE,
+                     :IMG,
+                     :IFRAME,
+                     :EMBED,
+                     :OBJECT,
+                     :PARAM,
+                     :VIDEO,
+                     :AUDIO,
+                     :SOURCE,
+                     :TRACK,
+                     :CANVAS,
+                     :MAP,
+                     :AREA,
+                     :MATH,
+                     :MI,
+                     :MO,
+                     :MN,
+                     :MS,
+                     :MTEXT,
+                     :MGLYPH,
+                     :MALIGNMARK,
+                     :ANNOTATION_XML,
+                     :SVG,
+                     :FOREIGNOBJECT,
+                     :DESC,
+                     :TABLE,
+                     :CAPTION,
+                     :COLGROUP,
+                     :COL,
+                     :TBODY,
+                     :THEAD,
+                     :TFOOT,
+                     :TR,
+                     :TD,
+                     :TH,
+                     :FORM,
+                     :FIELDSET,
+                     :LEGEND,
+                     :LABEL,
+                     :INPUT,
+                     :BUTTON,
+                     :SELECT,
+                     :DATALIST,
+                     :OPTGROUP,
+                     :OPTION,
+                     :TEXTAREA,
+                     :KEYGEN,
+                     :OUTPUT,
+                     :PROGRESS,
+                     :METER,
+                     :DETAILS,
+                     :SUMMARY,
+                     :COMMAND,
+                     :MENU,
+                     :APPLET,
+                     :ACRONYM,
+                     :BGSOUND,
+                     :DIR,
+                     :FRAME,
+                     :FRAMESET,
+                     :NOFRAMES,
+                     :ISINDEX,
+                     :LISTING,
+                     :XMP,
+                     :NEXTID,
+                     :NOEMBED,
+                     :PLAINTEXT,
+                     :RB,
+                     :STRIKE,
+                     :BASEFONT,
+                     :BIG,
+                     :BLINK,
+                     :CENTER,
+                     :FONT,
+                     :MARQUEE,
+                     :MULTICOL,
+                     :NOBR,
+                     :SPACER,
+                     :TT,
+                     :U,
+                     :UNKNOWN,
                      ]
 
         class Element < FFI::Struct
@@ -253,6 +273,18 @@ module Gumbo
                        :end_pos, SourcePosition,
                        :attributes, AttributeVector
 
+                def tag
+                        self[:tag]
+                end
+
+                def namespace
+                        self[:tag_namespace]
+                end
+
+                def original_tag
+                        self[:original_tag][:data]
+                end
+
                 def attributes
                   self[:attributes]
                 end
@@ -260,15 +292,23 @@ module Gumbo
                 def attribute(name)
                   self.attributes.find{|x| x.name == name}.value
                 end
+
+                def children
+                        self[:children]
+                end
         end
 
         class Text < FFI::Struct
                 layout :text, :string,
                        :original_text, StringPiece,
                        :start_pos, SourcePosition
+
+                def to_s
+                        self[:text]
+                end
         end
 
-        enum :node_type, [:document, :element, :text, :cdata, :comment, :whitespace]
+        NodeType = enum(:document, :element, :text, :cdata, :comment, :whitespace)
 
         class NodeUnion < FFI::Union
                 layout :document, Document,
@@ -277,7 +317,7 @@ module Gumbo
         end
 
         class Node < FFI::Struct
-                layout :type, :node_type,
+                layout :type, NodeType,
                        :parent, :pointer,
                        :index_within_parent, :size_t,
                        :parse_flags, :pointer,
@@ -287,10 +327,12 @@ module Gumbo
                   self[:type]
                 end
 
-                def value
-                  self[:v][self.type]
+                def content
+                        NodeType[self.type] < 3 ? self[:v][self.type] : ""
                 end
         end
+
+        NodeVector.type = Node
 
         class Options < FFI::Struct
                 layout :alocator, :pointer,
@@ -302,26 +344,36 @@ module Gumbo
                        :preserve_entities, :bool
         end
 
-        class Output < FFI::Struct
+        class HTML < FFI::Struct
                 layout :document, Node.ptr,
                        :root, Node.ptr,
                        :errors, Vector
+
+                def document
+                        self[:document][:v][:document]
+                end
+
+                def root
+                        self[:root][:v][:element]
+                end
+
+                def errors
+                        self[:errors]
+                end
         end
 
         attach_function :parse_with_options, :gumbo_parse_with_options, [:pointer, :string, :size_t], :pointer
 
-        attach_function :parse, :gumbo_parse, [:string], Output.ptr
-
+        attach_function :parse, :gumbo_parse, [:string], HTML.ptr
 end
 
 if __FILE__ == $0
         text = IO.read(File.expand_path("../../../../c/gumbo-parser/docs/html/index.html", __FILE__))
-        ptr = Gumbo.parse(text)
-        puts ptr[:document][:index_within_parent]
-        puts ptr[:document][:v][:document][:name].read_string
-        ptr[:document][:v][:document][:children].each do |pointr|
-          node = Gumbo::Node.new(pointr)
-          puts Gumbo::Attribute.new(node.value.attributes[0]).value
-          puts Gumbo::Attribute.new(node.value.attributes[0]).value
+        doc = Gumbo.parse(text)
+        puts doc.root.tag
+
+        puts doc.root.children[0].content.children[1].type
+        doc.root.children.each do |node|
+                #puts node.content
         end
 end
