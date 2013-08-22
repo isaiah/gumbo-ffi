@@ -7,7 +7,7 @@ doc = Gumbo.parse(text)
 head = nil
 root_children = doc.root.children
 root_children.each do |child|
-  if child[:type] == :element && child.content.tag == :HEAD
+  if child.type == :element && child.content.tag == :HEAD
     head = child
     break
   end
@@ -15,7 +15,7 @@ end
 
 head_children = head.content.children
 head_children.each do |child|
-  if child[:type] == :element && child.content[:tag] == :TITLE
+  if child.type == :element && child.content.tag == :TITLE
           if child.content.children.length != 1
                   puts "<empty title>"
                   break
