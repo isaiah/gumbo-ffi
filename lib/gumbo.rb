@@ -62,14 +62,18 @@ module Gumbo
 
                 alias_method :get, :[]
 
+                def data
+                        @data ||= self.get(:data).read_array_of_pointer(self.length)
+                end
+
                 def [](idx)
                   if idx < self.length
-                    @@type.new(self.get(:data).get_pointer(idx))
+                    @@type.new(self.data[idx])
                   end
                 end
 
                 def each
-                  (0...length).each{|idx| yield @@type.new(self.get(:data).get_pointer(idx))}
+                        data.each{|ptr| yield @@type.new(ptr)}
                 end
 
                 def <=>(a, b)
