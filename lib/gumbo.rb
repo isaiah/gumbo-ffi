@@ -54,10 +54,16 @@ module Gumbo
 
                 include Enumerable
 
+                def length
+                  self.get(:length)
+                end
+
+                alias_method :size, :length
+
                 alias_method :get, :[]
 
                 def [](idx)
-                  if idx < self.get(:length)
+                  if idx < self.length
                     @@type.new(self.get(:data).get_pointer(idx))
                   end
                 end
@@ -70,15 +76,9 @@ module Gumbo
                   0
                 end
 
-                def length
-                  self.get(:length)
-                end
-
-                alias_method :size, :length
-
-                def self.type=(t)
+               def self.type=(t)
                         @@type = t
-                end
+               end
         end
 
         class NodeVector < Vector
@@ -114,7 +114,7 @@ module Gumbo
 
         enum :namespace, [:html, :svg, :mahtml]
 
-        enum :tag,  [:HTML,
+        HTML_TAG = enum(:HTML,
                      :HEAD,
                      :TITLE,
                      :BASE,
@@ -260,12 +260,11 @@ module Gumbo
                      :SPACER,
                      :TT,
                      :U,
-                     :UNKNOWN,
-                     ]
+                     :UNKNOWN)
 
         class Element < FFI::Struct
                 layout :children, NodeVector,
-                       :tag, :tag,
+                       :tag, HTML_TAG,
                        :tag_namespace, :namespace,
                        :original_tag, StringPiece,
                        :original_end_tag, StringPiece,
@@ -370,10 +369,23 @@ end
 if __FILE__ == $0
         text = IO.read(File.expand_path("../../../../c/gumbo-parser/docs/html/index.html", __FILE__))
         doc = Gumbo.parse(text)
-        puts doc.root.tag
 
-        puts doc.root.children[0].content.children[1].type
-        doc.root.children.each do |node|
-                #puts node.content
+        head = nil
+        root_children = doc.root.children
+        root_children.each do |child|
+          if child[:type] == :element && child.content.tag == :HEAD
+            head = child
+            break
+          end
+        end
+
+        head_children = head.content.children
+        (0...head_children.get(:length)).each do |i|
+          puts i
+          child = Gumbo::Node.new(head_children.get(:data).get_pointer(i))
+          puts child[:type]
+          if child[:type] == :element
+            puts child[:v][:element][:tag]
+          end
         end
 end
