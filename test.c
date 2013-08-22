@@ -37,7 +37,6 @@ main()
             child->v.element.tag == GUMBO_TAG_HEAD) {
             head = child;
         }
-        printf("%d\n", child->v.element.tag);
     }
 
     assert(head != NULL);
@@ -46,6 +45,7 @@ main()
 
     for (int i = 0; i < head_children->length; i++) {
         GumboNode *child = head_children->data[i];
+        printf("type: %d, %d\n", i, child->type);
         if (child->type == GUMBO_NODE_ELEMENT &&
                 child->v.element.tag == GUMBO_TAG_TITLE) {
             if (child->v.element.children.length != 1)

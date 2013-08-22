@@ -327,7 +327,7 @@ module Gumbo
                 end
 
                 def content
-                        NodeType[self.type] < 3 ? self[:v][self.type] : ""
+                        NodeType[self.type] < 2 ? self[:v][self.type] : self[:v][:text]
                 end
         end
 
@@ -364,28 +364,4 @@ module Gumbo
         attach_function :parse_with_options, :gumbo_parse_with_options, [:pointer, :string, :size_t], :pointer
 
         attach_function :parse, :gumbo_parse, [:string], HTML.ptr
-end
-
-if __FILE__ == $0
-        text = IO.read(File.expand_path("../../../../c/gumbo-parser/docs/html/index.html", __FILE__))
-        doc = Gumbo.parse(text)
-
-        head = nil
-        root_children = doc.root.children
-        root_children.each do |child|
-          if child[:type] == :element && child.content.tag == :HEAD
-            head = child
-            break
-          end
-        end
-
-        head_children = head.content.children
-        (0...head_children.get(:length)).each do |i|
-          puts i
-          child = Gumbo::Node.new(head_children.get(:data).get_pointer(i))
-          puts child[:type]
-          if child[:type] == :element
-            puts child[:v][:element][:tag]
-          end
-        end
 end
