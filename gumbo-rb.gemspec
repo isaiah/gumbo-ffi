@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.description = <<-EOF
 Gumbo is an implementation of the HTML5 parsing algorithm implemented as a pure C99 library with no outside dependencies. It's designed to serve as a building block for other tools and libraries such as linters, validators, templating languages, and refactoring and analysis tools.
 
-This is the ruby binding, via ffi.
+This is the ruby binding library, via ffi.
 EOF
   
   dependencies = [
