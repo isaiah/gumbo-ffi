@@ -1,15 +1,17 @@
 PATH
   remote: .
   specs:
-    gumbo-rb (0.0.1)
+    gumbo-rb (0.1.0)
       ffi (~> 1.9.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
     ffi (1.9.0)
+    ffi (1.9.0-java)
 
 PLATFORMS
+  java
   ruby
 
 DEPENDENCIES

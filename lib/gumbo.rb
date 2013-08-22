@@ -293,7 +293,7 @@ module Gumbo
                 end
 
                 def attribute(name)
-                  self.attributes.find{|x| x.name == name}.value
+                        self.attributes.find{|x| x.name == name}.value
                 end
 
                 def children
