@@ -19,10 +19,10 @@ module Gumbo
                        :offset, :uint
         end
 
-        enum :attribute_namespace, [:none, :xlink, :xml, :xmlns]
+        AttributeNamespace = enum(:none, :xlink, :xml, :xmlns)
 
         class Attribute < FFI::Struct
-                layout :namespace, :attribute_namespace,
+                layout :namespace, AttributeNamespace,
                        :name, :string,
                        :original_name, StringPiece,
                        :value, :string,
@@ -42,6 +42,12 @@ module Gumbo
 
                 def value
                   self[:value]
+                end
+
+                AttributeNamespace.symbols.each do |attr|
+                  define_method "#{attr.to_s}?" do
+                    self[:namespace] == attr
+                  end
                 end
         end
 
@@ -116,7 +122,7 @@ module Gumbo
                 end
         end
 
-        enum :namespace, [:html, :svg, :mahtml]
+        TagNamespace = enum :html, :svg, :mahtml
 
         HTML_TAG = enum(:HTML,
                      :HEAD,
@@ -269,7 +275,7 @@ module Gumbo
         class Element < FFI::Struct
                 layout :children, NodeVector,
                        :tag, HTML_TAG,
-                       :tag_namespace, :namespace,
+                       :tag_namespace, TagNamespace,
                        :original_tag, StringPiece,
                        :original_end_tag, StringPiece,
                        :start_pos, SourcePosition,
@@ -298,6 +304,18 @@ module Gumbo
 
                 def children
                         self[:children]
+                end
+
+                HTML_TAG.symbols.each do |tag|
+                  define_method "#{tag.to_s.downcase}_tag?" do
+                    self[:tag] == tag
+                  end
+                end
+
+                TagNamespace.symbols.each do |ns|
+                  define_method "#{ns.to_s}_ns?" do
+                    self[:tag_namespace] == ns
+                  end
                 end
         end
 
@@ -332,6 +350,16 @@ module Gumbo
 
                 def content
                         NodeType[self.type] < 2 ? self[:v][self.type] : self[:v][:text]
+                end
+
+                def method_missing(name, *args)
+                  content.respond_to?(name) ? content.send(name) : content[name]
+                end
+
+                NodeType.symbols.each do |nt|
+                  define_method "#{nt}?" do
+                    self[:type] == nt
+                  end
                 end
         end
 
