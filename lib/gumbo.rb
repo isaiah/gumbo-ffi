@@ -92,9 +92,16 @@ module Gumbo
   end
 
   class NodeVector < Vector
+    layout :data, :pointer,
+      :length, :uint,
+      :capacity, :uint
   end
 
   class AttributeVector < Vector
+    layout :data, :pointer,
+      :length, :uint,
+      :capacity, :uint
+
     @@type = Attribute
   end
 
