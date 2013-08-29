@@ -8,9 +8,9 @@ Get started
 
 Install
 [gumbo-parser](https://github.com/google/gumbo-parser#installation) by
-follow the instructions. And
+following the instructions. And
 
-`gem i gumbo-rb`
+`gem install gumbo-rb`
 
 Examples
 --------------
