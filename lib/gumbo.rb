@@ -3,9 +3,9 @@ require "ffi"
 module Gumbo 
   extend FFI::Library
   if FFI::Platform.mac?
-    ffi_lib "/usr/local/lib/libgumbo.dylib"
+    ffi_lib "libgumbo.dylib"
   else
-    ffi_lib "/usr/local/lib/libgumbo.so"
+    ffi_lib "libgumbo.so"
   end
 
   class StringPiece < FFI::Struct
