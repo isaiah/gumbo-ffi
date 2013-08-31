@@ -400,7 +400,26 @@ module Gumbo
     end
   end
 
-  attach_function :parse_with_options, :gumbo_parse_with_options, [:pointer, :string, :size_t], :pointer
+  def self.parse(text, opts = {})
+    raise "A block is required to use the method." unless block_given?
+    options = Options.new
+    Options.layout.members.each do |attr|
+      options[attr] = opts[attr] || default_options[attr]
+    end
 
-  attach_function :parse, :gumbo_parse, [:string], HTML.ptr
+    output = gumbo_parse_with_options(options, text, text.length)
+    begin
+      yield output
+    ensure
+      destroy_output(options, output)
+    end
+  end
+
+  attach_function :gumbo_parse_with_options, [:pointer, :string, :size_t], HTML.ptr
+
+  attach_function :gumbo_parse, [:string], HTML.ptr
+
+  attach_function :destroy_output, :gumbo_destroy_output, [Options, HTML], :void
+
+  attach_variable :default_options, :kGumboDefaultOptions, Options
 end
