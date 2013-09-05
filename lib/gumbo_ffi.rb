@@ -1,6 +1,6 @@
 require "ffi"
 
-module Gumbo 
+module GumboFFI
   extend FFI::Library
   if FFI::Platform.mac?
     ffi_lib "libgumbo.dylib"
@@ -423,3 +423,5 @@ module Gumbo
 
   attach_variable :default_options, :kGumboDefaultOptions, Options
 end
+
+Gumbo = GumboFFI

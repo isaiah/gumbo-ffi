@@ -1,15 +1,15 @@
 
 # -*- encoding: utf-8 -*-
 $:.push('lib')
-require "gumbo/version"
+require "gumbo_ffi/version"
 
 Gem::Specification.new do |s|
-  s.name     = "gumbo-rb"
+  s.name     = "gumbo-ffi"
   s.version  = Gumbo::VERSION.dup
   s.date     = "2013-08-22"
   s.summary  = "Ruby binding for the gumbo html5 parser."
   s.email    = "issaria@gmail.com"
-  s.homepage = "http://github.com/isaiah/gumbo-rb"
+  s.homepage = "http://github.com/isaiah/gumbo-ffi"
   s.authors  = ['Isaiah Peng']
   
   s.description = <<-EOF
